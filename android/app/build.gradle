@@ -1,0 +1,24 @@
+plugins {
+    id 'com.android.application'
+}
+android {
+    namespace 'com.lara.runeclash'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.lara.runeclash'
+        minSdk 26
+        targetSdk 35
+        versionCode 8
+        versionName '0.8.0-wifi-beta'
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Sign your release from Android Studio. No signing keys are shipped.
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

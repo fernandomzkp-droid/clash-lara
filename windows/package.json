@@ -1,0 +1,44 @@
+{
+  "name": "clash-lara-windows",
+  "version": "0.7.0-beta.1",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "dev": "electron .",
+    "dist": "electron-builder --win nsis portable"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.lara.runeclash",
+    "productName": "Clash Lara",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "lan-policy.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "www",
+        "to": "www",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "artifactName": "ClashLara-${version}-${arch}.${ext}"
+    },
+    "asar": true
+  }
+}

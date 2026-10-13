@@ -1,0 +1,12 @@
+**/node_modules/
+**/build/
+**/dist/
+**/.gradle/
+**/.idea/
+**/DerivedData/
+**/*.xcuserstate
+**/private/
+**/*.keystore
+**/*.p12
+**/*.mobileprovision
+android/local.properties
