@@ -1,0 +1,11 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'lara-api-v1-')),port=18000+Math.floor(Math.random()*1000),base='http://127.0.0.1:'+port;const proc=spawn(process.execPath,[path.join(__dirname,'tab_s7_server.js')],{env:{...process.env,HOST:'127.0.0.1',PORT:String(port),CLASH_DB:path.join(dir,'db.json'),CLASH_GM_PASSWORD:'test_only_root_password_1234'},stdio:'pipe'});let log='';proc.stderr.on('data',b=>log+=b);
+try{let ready=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/api/v1/health')).ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,50));}assert(ready,log);
+const post=async(route,body,token)=>{const r=await fetch(base+'/api/v1/'+route,{method:'POST',headers:{'Content-Type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});return {status:r.status,body:await r.json()}};
+const login=await post('login',{username:'gm',password:'test_only_root_password_1234'});assert.equal(login.status,200);const token=login.body.token;
+assert.equal((await post('classes',{},token)).body.classes.length,10);assert.equal((await post('player',{},token)).body.offlineImport,false);
+const invite=(await post('invites',{count:1},token)).body.codes[0];assert.equal((await post('invites/revoke',{code:invite},token)).status,200);assert.equal((await post('register',{code:invite,username:'tester',password:'test_user_password_123'})).status,403);
+assert.equal((await post('combat/events',{damage:999999},token)).status,501);assert.equal((await post('equipment',{},token)).status,501);assert.equal((await post('trainer',{action:'hack',xp:999999},token)).status,400);
+console.log('PASS APIv1 aliases, player/classes contract, invite revocation, unsupported mutations');
+}finally{proc.kill();await new Promise(r=>proc.exitCode!==null?r():proc.once('exit',r));fs.rmSync(dir,{recursive:true,force:true});}})().catch(e=>{console.error(e);process.exitCode=1});

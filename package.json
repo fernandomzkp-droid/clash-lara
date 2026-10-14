@@ -12,7 +12,7 @@
     "lan:host": "node game/server/realm/secure-host.js",
     "ios:generate": "node scripts/prepare.cjs && cd ios && npm install && npx cap add ios && npx cap sync ios",
     "tab:host": "node game/server/tab-s7/tab_s7_server.js",
-    "test:tab": "node game/server/tab-s7/red_team_tests.js && node game/server/tab-s7/v102_regression.js && node game/server/tab-s7/test-storage.js && node game/server/tab-s7/test_tab_s7.js && node game/server/tab-s7/test_v107.js && node game/server/tab-s7/test_lmcp_v108.js"
+    "test:tab": "node game/server/tab-s7/red_team_tests.js && node game/server/tab-s7/v102_regression.js && node game/server/tab-s7/test-storage.js && node game/server/tab-s7/test_tab_s7.js && node game/server/tab-s7/test_v107.js && node game/server/tab-s7/test_lmcp_v108.js && node game/server/tab-s7/test-api-v1.js"
   },
   "engines": {
     "node": ">=22.13"
