@@ -1,0 +1,63 @@
+name: Gerar APK beta Android
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: SDK Android
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Preparação e testes
+        run: npm test
+      - name: Teste do jogo no navegador móvel
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          mkdir -p entrega
+          node game/tests/test-browser.cjs
+      - uses: actions/cache@v4
+        with:
+          path: .beta-signing/debug.keystore
+          key: clash-lara-beta2-debug-v2
+      - name: Preparar chave de teste persistente
+        run: |
+          mkdir -p .beta-signing
+          if [ ! -f .beta-signing/debug.keystore ]; then
+            keytool -genkeypair -keystore .beta-signing/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname 'CN=Clash Lara Beta,O=Lara,C=BR' -keyalg RSA -keysize 2048 -validity 10000
+          fi
+      - name: Compilar APK
+        run: gradle -p android --no-daemon assembleDebug
+      - name: Verificar assinatura e preparar arquivo
+        run: |
+          mkdir -p entrega
+          cp android/app/build/outputs/apk/debug/app-debug.apk entrega/Clash-Lara-Etapas-Beta.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose entrega/Clash-Lara-Etapas-Beta.apk
+          cd entrega
+          sha256sum Clash-Lara-Etapas-Beta.apk > SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Clash-Lara-Beta-APK
+          path: entrega/
+          if-no-files-found: error

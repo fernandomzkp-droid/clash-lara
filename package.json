@@ -1,0 +1,20 @@
+{
+  "name": "clash-lara-multiplataforma",
+  "private": true,
+  "version": "0.9.0-beta.1",
+  "scripts": {
+    "prepare:all": "node scripts/prepare.cjs",
+    "test": "npm run prepare:all && node game/tests/test.js && node game/tests/test-rules.js && node game/tests/test-sequences.js && node game/tests/test-ui.js && node game/tests/test-rpg.js && node game/tests/test-world-v6.js && node game/tests-v7/test-realms.js && node game/tests-v7/test-transport.js && node game/tests-v7/test-persistence.js && node windows/test-policy.cjs && node game/tests-v7/test-phone.js && node game/tests/test-etapas.js && npm run test:tab",
+    "android:prep": "node scripts/prepare.cjs",
+    "ios:prep": "node scripts/prepare.cjs",
+    "windows:dev": "node scripts/prepare.cjs && npm --prefix windows run dev",
+    "windows:build": "node scripts/prepare.cjs && npm --prefix windows run dist",
+    "lan:host": "node game/server/realm/secure-host.js",
+    "ios:generate": "node scripts/prepare.cjs && cd ios && npm install && npx cap add ios && npx cap sync ios",
+    "tab:host": "node game/server/tab-s7/tab_s7_server.js",
+    "test:tab": "node game/server/tab-s7/red_team_tests.js && node game/server/tab-s7/v102_regression.js && node game/server/tab-s7/test-storage.js && node game/server/tab-s7/test_tab_s7.js && node game/server/tab-s7/test_v107.js && node game/server/tab-s7/test_lmcp_v108.js && node game/server/tab-s7/test-api-v1.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}

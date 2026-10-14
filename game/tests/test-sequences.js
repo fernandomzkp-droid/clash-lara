@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict');
+const C=require('../www/engine-core.js');
+const g=(code,time,quality=.98)=>({code,time,quality});
+function play(chars,custom=[],step=350){let state=[],hits=[];chars.split('').forEach((ch,i)=>{const t=i*step;const r=C.advanceCombo(state,[...custom,...C.defaults],g(ch,t),t);state=r.sequence;if(r.combo)hits.push(r.combo.name)});return {hits,state}}
+assert.deepEqual(play('RR').hits,['Lâminas Gêmeas']);
+assert.deepEqual(play('UR').hits,['Ruptura']);
+assert.deepEqual(play('RUR').hits,['Dança de Lâminas'],'UR suffix may NOT steal RUR');
+assert.deepEqual(play('OOZR').hits,['Eclipse'],'OZR suffix may NOT steal OOZR');
+assert.deepEqual(play('OZR').hits,['Tempestade Rúnica']);
+assert.deepEqual(play('DLR').hits,['Fantasma Defensor']);
+assert.deepEqual(play('RURR').hits,['Dança de Lâminas']);
+const custom=[{name:'Selo do Alba',seq:'RUOZR',damage:100,custom:true}];
+assert.deepEqual(play('RUOZR',custom).hits,['Selo do Alba'],'OZR suffix may NOT steal custom');
+assert.deepEqual(play('ZZZ', [{name:'Tempestade Tripla',seq:'ZZZ'}]).hits,['Tempestade Tripla']);
+assert.deepEqual(play('RUR',[],1600).hits,[],'timed out strokes cannot complete');
+let x=C.advanceCombo([g('R',0),g('U',250)],C.defaults,g('R',530),530);
+assert.equal(x.combo?.perfect,true);
+x=C.advanceCombo([g('R',0),g('U',250)],C.defaults,g('R',530,.5),530);
+assert.equal(x.combo?.perfect,false);
+assert.equal(C.advanceCombo([],C.defaults,g('Q',0),0).combo,null);
+console.log('Sequence arbiter: 12 coverage groups PASS');

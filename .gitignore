@@ -1,0 +1,22 @@
+**/node_modules/
+**/build/
+**/dist/
+**/.gradle/
+**/.idea/
+**/DerivedData/
+**/*.xcuserstate
+**/private/
+**/*.keystore
+**/*.p12
+**/*.mobileprovision
+android/local.properties
+
+# Private trainer data and generated QA output
+**/.clash_private*
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm
+**/*.pre-sqlite.bak
+entrega/
+
+.beta-signing/
