@@ -7,6 +7,7 @@
   <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
   <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+  <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
   <application android:label="@string/app_name" android:icon="@drawable/ic_rune"
       android:theme="@android:style/Theme.Material.NoActionBar"
       android:usesCleartextTraffic="false"

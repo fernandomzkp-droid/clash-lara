@@ -1,6 +1,12 @@
-# Clash Lara — beta Android 0.8, código-fonte
+# Clash Lara — beta Android 0.9, integração das etapas
 
-**Estado desta entrega:** código alterado e testes de domínio executados. APK ainda NÃO compilado. Bluetooth/Wi-Fi nativos ainda NÃO testados em celulares. O ambiente de edição não tinha SDK Android nem Gradle, e os pedidos de download não chegaram a executar. Não considere esta entrega um APK pronto.
+A beta0.8 teve APK compilado e assinatura verificada no GitHub. Esta revisão integra treinador offline, aparência vetorial de20modelos por classe/8elementos/13brilhos,80falas com TTS offline disponível no aparelho, qualidade gráfica e exportação/importação de save. O novo servidor Tab S7 opcional usa SQLite e APIv1. Veja [handoff das etapas](docs/etapas/HANDOFF.md) para testes, contrato e partes pendentes.
+
+**Instalação0.9:** aplicativo separado **Clash Lara Etapas** (`com.lara.runeclash.beta2`). A chave temporária da0.8 não está disponível para assinar uma atualização compatível. O aplicativo anterior e seus dados ficam preservados; mundos da0.8 não migram automaticamente. Não desinstale a0.8 para manter seu progresso. Todos os amigos devem instalar a mesma nova beta. O workflow guarda a chave de debug em cache para próximas compilações desta beta, mas cache pode expirar: para distribuição definitiva é necessária chave de release guardada pelo proprietário.
+
+No menu: **TREINO POR TEMPO · VISUAIS · VOZES**. Escolha classe e inicie treino, escolha visual e ative falas. Treino0→1=1h, depois10h,100h etc., separado do XP de combate. Aparências não dão atributos grátis. **EXPORTAR SAVE** copia o texto no Android; guarde-o e cole em **IMPORTAR SAVE** nesta beta para transferir entre instalações compatíveis.
+
+Teste Bluetooth/Wi-Fi físico e desempenho no Tab S7 continuam pendentes. Não há resultado oficial LS2/LMCP.
 
 ## O que foi implementado no código
 
@@ -19,14 +25,14 @@ Bluetooth e Wi-Fi usam o mesmo motor de sala. A configuração do servidor Node 
 
 1. Crie um repositório privado no GitHub e envie o **conteúdo desta pasta**, incluindo `.github/workflows/android-beta.yml`.
 2. Abra **Actions → Gerar APK beta Android → Run workflow**. O fluxo também executa em um push para `main`.
-3. Quando terminar com sucesso, baixe o artefato **Clash-Lara-Beta-APK**, extraia e instale `Clash-Lara-Beta.apk`.
+3. Quando terminar com sucesso, baixe o artefato **Clash-Lara-Beta-APK**, extraia e instale `Clash-Lara-Etapas-Beta.apk`.
 4. Envie esse APK aos amigos como documento pelo WhatsApp.
 
-Esse workflow foi incluído, mas não foi executado nesta sessão. Ele necessita disponibilidade do GitHub Actions na sua conta. O APK usa assinatura de debug para testes; recompilações com outra chave não atualizam uma instalação existente. Guarde a mesma chave de assinatura para atualizações que preservem dados.
+Esse workflow foi executado com sucesso no run 38473290429. Ele necessita disponibilidade do GitHub Actions na sua conta. O APK usa assinatura de debug para testes; recompilações com outra chave não atualizam uma instalação existente. Guarde a mesma chave de assinatura para atualizações que preservem dados.
 
 Alternativa: JDK 17/21 + SDK Android 35 + Gradle 8.9; execute `tools/build-android.sh`, ou abra `android/` no Android Studio, depois de `npm run prepare:all`.
 
-## Jogar por Bluetooth, depois de compilar
+## Jogar por Bluetooth
 
 1. Instalem o mesmo APK nos Androids (Android 8 ou mais recente).
 2. Pareiem os celulares nas configurações de Bluetooth.
@@ -45,7 +51,7 @@ Conectem todos ao mesmo Wi-Fi ou ao hotspot do anfitrião. Ele usa **CRIAR SALA 
 
 ## Limites da beta
 
-- Código nativo ainda depende de compilação e testes em dois aparelhos. Não há garantia de funcionamento Bluetooth/Wi-Fi antes dessa validação.
+- Código nativo compilado; ainda depende de testes em dois aparelhos. Não há garantia de funcionamento Bluetooth/Wi-Fi antes dessa validação.
 - A sala confia no personagem offline importado para cooperação entre amigos. Sanitização e rate limit não detectam toda edição de saves, bots lentos ou adulteração do celular anfitrião.
 - Recompensas já recebidas por snapshot são salvas no aparelho. Fechar forçadamente o anfitrião antes da sincronização pode perder a última recompensa ainda não recebida; não há servidor permanente nem recuperação em nuvem.
 - Não há serviço de hospedagem em segundo plano. Mantenha o jogo do anfitrião aberto e a conexão ativa.

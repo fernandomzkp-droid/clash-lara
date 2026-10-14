@@ -1,0 +1,20 @@
+'use strict';
+const assert=require('node:assert/strict');const C=require('./trainer_core');
+const H=C.HOUR;let passed=0;function test(name,fn){fn();passed++;process.stdout.write('PASS '+name+'\n');}
+test('ten distinct classes',()=>assert.equal(new Set(C.CLASSES).size,10));
+test('progression ×10 exact',()=>{for(let n=0;n<7;n++)assert.equal(C.cost(n+1)/C.cost(n),10)});
+test('0 to 1 after 1h',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,H);assert.equal(s.classes.Duelista.level,1)});
+test('11 hours level 2',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,11*H);assert.equal(s.classes.Duelista.level,2);assert.equal(s.classes.Duelista.progressMs,0)});
+test('12 hours level 2 plus 1 hour',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,12*H);assert.equal(s.classes.Duelista.level,2);assert.equal(s.classes.Duelista.progressMs,H)});
+test('class isolation',()=>{let s=C.create(0);s.active='Duelista';s=C.select(s,'Arcanista',H);s=C.toggle(s,H);s=C.toggle(s,H);s=C.advance(s,2*H);assert.equal(s.classes.Duelista.level,1);assert.equal(s.classes.Arcanista.level,1)});
+test('pause does not accrue',()=>{let s=C.create(0);s.active='Duelista';s=C.toggle(s,H);s=C.advance(s,4*H);assert.equal(s.classes.Duelista.level,1)});
+test('clock rollback cannot replay interval',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,H/2);s=C.advance(s,0);assert.equal(s.lastSync,H/2);s=C.advance(s,H);assert.equal(s.classes.Duelista.level,1);assert.ok(s.clockWarnings>0)});
+test('invalid stored values normalized',()=>{const s=C.normalize({version:1,active:'X',selected:'X',lastSync:-5,classes:{Duelista:{level:NaN,progressMs:Infinity},Monge:{level:999,progressMs:1e300}}},0);assert.equal(s.active,null);assert.equal(s.classes.Duelista.level,0);assert.equal(s.classes.Monge.level,9);assert.equal(s.classes.Monge.progressMs,0)});
+test('progress overflow canonicalized',()=>{const s=C.normalize({version:2,classes:{Duelista:{level:0,progressMs:11*H}}},0);assert.equal(s.classes.Duelista.level,2)});
+test('max level never overflows',()=>{let s=C.create(0);s.active='Duelista';s.classes.Duelista.level=9;s=C.advance(s,100*H);assert.equal(s.classes.Duelista.level,9)});
+test('large time jump bounded and flagged',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,365*24*H);assert.equal(s.clockWarnings,1);assert.equal(s.classes.Duelista.level,3)});
+test('invalid class rejected',()=>assert.throws(()=>C.select(C.create(0),'Hacker',1)));
+test('repeated timestamp idempotent',()=>{let s=C.create(0);s.active='Duelista';s=C.advance(s,12345);assert.deepEqual(C.advance(s,12345),s)});
+test('no negative XP',()=>{let s=C.create(100);s.active='Duelista';s=C.advance(s,50);assert.equal(s.classes.Duelista.progressMs,0)});
+test('serialized state rehydrates',()=>{let s=C.create(0);s.active='Monge';s=C.advance(s,H);const t=C.normalize(JSON.parse(JSON.stringify(s)),H);assert.equal(t.classes.Monge.level,1)});
+console.log('TOTAL',passed,'PASSED');

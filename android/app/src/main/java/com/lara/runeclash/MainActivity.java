@@ -18,6 +18,9 @@ import java.util.concurrent.*;
  * Remote peers can only exchange bounded JSON through a certificate-pinned native TLS client. */
 public final class MainActivity extends Activity {
  private WebView web,engine;
+ private android.speech.tts.TextToSpeech tts;
+ private volatile boolean voiceReady=false,voiceEnabled=false;
+ private long lastSpeech=0;
  private PhoneLan host;
  private PhoneBluetooth bluetooth;
  private boolean bluetoothMode=false,bluetoothHost=false;
@@ -35,6 +38,9 @@ public final class MainActivity extends Activity {
   LinearLayout bar=new LinearLayout(this);Button solo=button("SOLO"),create=button("CRIAR SALA"),join=button("ENTRAR");roomButton=button("CONVITE");
   for(Button b:new Button[]{solo,create,join,roomButton})bar.addView(b,new LinearLayout.LayoutParams(0,dp(48),1));root.addView(bar);
   web=new WebView(this);configure(web);web.getSettings().setDomStorageEnabled(true);web.addJavascriptInterface(new NativeBridge(),"NativeLan");
+  tts=new android.speech.tts.TextToSpeech(this,status->{if(status==android.speech.tts.TextToSpeech.SUCCESS&&tts!=null){tts.setLanguage(new java.util.Locale("pt","BR"));java.util.Set<android.speech.tts.Voice> voices=tts.getVoices();if(voices!=null)for(android.speech.tts.Voice v:voices){if(v.getLocale().getLanguage().equals("pt")&&!v.isNetworkConnectionRequired()){voiceReady=tts.setVoice(v)==android.speech.tts.TextToSpeech.SUCCESS;break;}}}});
+  web.addJavascriptInterface(new VoiceBridge(),"NativeVoice");
+  web.addJavascriptInterface(new BackupBridge(),"NativeBackup");
   web.setWebChromeClient(new WebChromeClient());
   web.setWebViewClient(new WebViewClient(){
    @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest req){if(!req.getUrl().toString().equals(ORIGIN))return new WebResourceResponse("text/plain","UTF-8",new ByteArrayInputStream(new byte[0]));try{return new WebResourceResponse("text/html","UTF-8",getAssets().open("game.html"));}catch(IOException e){return null;}}
@@ -66,6 +72,16 @@ public final class MainActivity extends Activity {
  private void showInvite(){if(bluetoothHost){new AlertDialog.Builder(this).setTitle("Seu mundo está aberto por Bluetooth").setMessage("Pareie os celulares. No amigo: ENTRAR → Bluetooth → escolha este celular. Até 4 convidados. Mantenha o jogo aberto.").setPositiveButton("FICAR VISÍVEL",(d,w)->{Intent i=new Intent(android.bluetooth.BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);i.putExtra(android.bluetooth.BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,300);startActivity(i);}).setNeutralButton("PAREAMENTO",(d,w)->startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS))).setNegativeButton("OK",null).show();return;}if(host==null){message(joined?"Peça o convite ao anfitrião da sala.":"Primeiro ative o hotspot ou conecte-se ao Wi-Fi e toque em CRIAR SALA.");return;}try{List<String> invitations=host.invitations();if(invitations.isEmpty()){message("Nenhum endereço Wi-Fi encontrado. Ative o roteador Wi-Fi do celular ou conecte-se ao Wi-Fi e tente CONVITE novamente.");return;}String[] labels=new String[invitations.size()];for(int i=0;i<labels.length;i++)labels[i]="Rede "+PhoneLan.parse(invitations.get(i)).getString("ip");if(labels.length==1){shareDialog(invitations.get(0));return;}new AlertDialog.Builder(this).setTitle("Escolha a rede do Wi-Fi/hotspot").setItems(labels,(d,w)->shareDialog(invitations.get(w))).show();}catch(Exception e){message(e.getMessage());}}
  private void shareDialog(String code){TextView t=new TextView(this);t.setPadding(dp(18),dp(12),dp(18),dp(12));t.setText("Sala aberta neste celular, para até 8 jogadores. Mantenha o jogo aberto e os celulares no mesmo Wi-Fi.\n\n"+code);t.setTextIsSelectable(true);new AlertDialog.Builder(this).setTitle("Convite da sua sala").setView(t).setPositiveButton("COPIAR",(d,w)->{android.content.ClipboardManager c=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);c.setPrimaryClip(ClipData.newPlainText("Convite Clash Lara",code));Toast.makeText(this,"Convite copiado",Toast.LENGTH_SHORT).show();}).setNeutralButton("COMPARTILHAR",(d,w)->{Intent i=new Intent(Intent.ACTION_SEND);i.setType("text/plain");i.putExtra(Intent.EXTRA_TEXT,"Entre no mesmo Wi-Fi/hotspot e cole este convite em ENTRAR no Clash Lara:\n"+code);startActivity(Intent.createChooser(i,"Compartilhar convite"));}).setNegativeButton("FECHAR",null).show();}
  private void leave(){if(!joined&&host==null&&!bluetoothHost)return;String msg=(host!=null||bluetoothHost)?"Encerrar sua sala desconecta os amigos. Os personagens já sincronizados ficam salvos em cada celular.":"Salvar o personagem e voltar ao modo offline?";new AlertDialog.Builder(this).setTitle("Voltar ao solo").setMessage(msg).setPositiveButton("SALVAR E SAIR",(d,w)->web.evaluateJavascript("window.dispatchEvent(new Event('rune-native-leave'))",null)).setNegativeButton("CANCELAR",null).show();}
+ public final class VoiceBridge {
+  @JavascriptInterface public boolean available(){return voiceReady;}
+  @JavascriptInterface public void enable(boolean enabled){voiceEnabled=enabled;if(!enabled)stop();}
+  @JavascriptInterface public void stop(){runOnUiThread(()->{if(tts!=null)tts.stop();});}
+  @JavascriptInterface public void speak(String line,double rate,double pitch){if(line==null||line.length()>300||!Double.isFinite(rate)||!Double.isFinite(pitch))return;runOnUiThread(()->{long now=android.os.SystemClock.elapsedRealtime();if(!voiceReady||!voiceEnabled||now-lastSpeech<2600)return;lastSpeech=now;tts.setSpeechRate((float)Math.max(.6,Math.min(1.4,rate)));tts.setPitch((float)Math.max(.6,Math.min(1.5,pitch)));tts.speak(line,android.speech.tts.TextToSpeech.QUEUE_FLUSH,null,"lara-skill");});}
+ }
+ public final class BackupBridge {
+  @JavascriptInterface public void share(String save){if(save==null||save.length()>500000)return;runOnUiThread(()->{android.content.ClipboardManager c=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);c.setPrimaryClip(ClipData.newPlainText("Save Clash Lara",save));Toast.makeText(MainActivity.this,"Save copiado. Guarde o texto completo em local seguro.",Toast.LENGTH_LONG).show();});}
+ }
+ @Override protected void onPause(){if(tts!=null)tts.stop();super.onPause();}
  public final class NativeBridge {
   @JavascriptInterface public String name(){return getPreferences(0).getString("hero_name","Aventureiro");}
   @JavascriptInterface public boolean active(){return joined;}
@@ -74,5 +90,5 @@ public final class MainActivity extends Activity {
   @JavascriptInterface public void finishLeave(){runOnUiThread(()->{joined=false;room=null;ready=false;bluetoothHost=false;if(bluetooth!=null){bluetooth.close();bluetooth=null;}if(host!=null){host.close();host=null;}if(engine!=null){engine.destroy();engine=null;}getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);Toast.makeText(MainActivity.this,"Personagem salvo · modo offline",Toast.LENGTH_SHORT).show();});}
  }
  @Override public void onBackPressed(){if(joined||host!=null||bluetoothHost){leave();return;}super.onBackPressed();}
- @Override protected void onDestroy(){if(host!=null)host.close();if(bluetooth!=null)bluetooth.close();worker.shutdownNow();if(engine!=null)engine.destroy();if(web!=null)web.destroy();super.onDestroy();}
+ @Override protected void onDestroy(){if(tts!=null){tts.stop();tts.shutdown();}if(host!=null)host.close();if(bluetooth!=null)bluetooth.close();worker.shutdownNow();if(engine!=null)engine.destroy();if(web!=null)web.destroy();super.onDestroy();}
 }

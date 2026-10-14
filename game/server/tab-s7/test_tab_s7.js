@@ -1,0 +1,24 @@
+'use strict';const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process');
+(async()=>{const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'clash-test-')),port=18879;const env={...process.env,PORT:String(port),HOST:'127.0.0.1',CLASH_DB:path.join(tmp,'db.json'),CLASH_GM_PASSWORD:'temporary_test_secret_123456789'};let p;let passed=0;
+const launch=()=>{p=spawn(process.execPath,[path.join(__dirname,'tab_s7_server.js')],{env,stdio:'pipe'})};
+const request=async(route,data,token)=>{const r=await fetch('http://127.0.0.1:'+port+'/api/'+route,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:'Bearer '+token}:{})},body:JSON.stringify(data)});return {status:r.status,data:await r.json()}};
+const ready=async()=>{for(let i=0;i<80;i++){try{const r=await fetch('http://127.0.0.1:'+port+'/api/health');if(r.ok)return}catch{}await new Promise(r=>setTimeout(r,50))}throw Error('server failed')};
+try{launch();await ready();let r=await request('trainer',{action:'status'});assert.equal(r.status,401);passed++;
+r=await request('login',{username:'gm',password:'temporary_test_secret_123456789'});assert.equal(r.status,200);const gm=r.data.token;passed++;
+r=await request('invites',{count:1,hours:24},gm);assert.equal(r.status,201);const code=r.data.codes[0];passed++;
+r=await request('register',{username:'player1',password:'player_secure_password',code});assert.equal(r.status,201);passed++;
+r=await request('register',{username:'player2',password:'player_secure_password',code});assert.equal(r.status,403);passed++;
+// Old invite cannot be reused even under concurrent requests.
+r=await request('invites',{count:1},gm);const racingCode=r.data.codes[0];
+const race=await Promise.all(Array.from({length:8},(_,i)=>request('register',{username:'racer'+i,password:'player_secure_password',code:racingCode})));
+assert.equal(race.filter(z=>z.status===201).length,1);passed++;
+r=await request('login',{username:'player1',password:'player_secure_password'});const player=r.data.token;assert.equal(r.status,200);passed++;
+r=await request('invites',{count:1},player);assert.equal(r.status,403);passed++;
+r=await request('trainer',{action:'select',className:'Arcanista'},player);assert.equal(r.status,200);assert.equal(r.data.state.selected,'Arcanista');passed++;
+r=await request('trainer',{action:'start'},player);assert.equal(r.data.state.active,'Arcanista');passed++;
+r=await request('trainer',{action:'status'},gm);assert.equal(r.data.state.active,null);passed++;
+await new Promise(r=>setTimeout(r,120));r=await request('trainer',{action:'status'},player);assert.ok(r.data.state.classes.Arcanista.progressMs>=100);passed++;
+p.kill('SIGTERM');await new Promise(r=>setTimeout(r,150));launch();await ready();r=await request('trainer',{action:'status'},player);assert.equal(r.status,401);passed++;
+r=await request('login',{username:'player1',password:'player_secure_password'});assert.equal(r.status,200);r=await request('trainer',{action:'status'},r.data.token);assert.equal(r.data.state.active,null);passed++;
+console.log(`PASS ${passed} API + restart + concurrency tests`);
+}finally{p?.kill('SIGTERM');fs.rmSync(tmp,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exitCode=1});

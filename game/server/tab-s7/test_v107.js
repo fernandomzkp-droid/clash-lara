@@ -1,0 +1,12 @@
+"use strict";
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),{spawn}=require('node:child_process');
+(async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'clash107-'));const port=20000+Math.floor(Math.random()*10000);const proc=spawn(process.execPath,[path.join(__dirname,'tab_s7_server.js')],{env:{...process.env,HOST:'127.0.0.1',PORT:String(port),CLASH_DB:path.join(dir,'db.json'),CLASH_GM_PASSWORD:'test_secure_password_long_1234'},stdio:'pipe'});let passed=0;const base=`http://127.0.0.1:${port}`;
+try{let ok=false;for(let i=0;i<100;i++){try{if((await fetch(base+'/api/health')).ok){ok=true;break}}catch{}await new Promise(r=>setTimeout(r,30))}assert.ok(ok,'server ready');passed++;
+let r=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'text/plain'},body:'{}'});assert.equal(r.status,415);passed++;
+r=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'gm',password:'wrong'})});assert.equal(r.status,401);passed++;
+r=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'gm',password:'test_secure_password_long_1234'})});assert.equal(r.status,200);const token=(await r.json()).token;passed++;
+r=await fetch(base+'/api/invites',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({count:1})});assert.equal(r.status,201);passed++;
+r=await fetch(base+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({x:'a'.repeat(9000)})});assert.equal(r.status,413);passed++;
+r=await fetch(base+'/api/health');assert.equal(r.headers.get('x-content-type-options'),'nosniff');passed++;
+console.log('PASS',passed,'V10.7 security regressions');
+}finally{proc.kill();fs.rmSync(dir,{recursive:true,force:true})}})().catch(e=>{console.error(e);process.exitCode=1});

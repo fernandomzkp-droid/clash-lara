@@ -3,7 +3,7 @@ const root=path.resolve(__dirname,'..'),dir=path.join(root,'www');
 let html=fs.readFileSync(path.join(dir,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(dir,'design-system.css'),'utf8').replaceAll('</style','<\/style');
 html=html.replace('<link rel="stylesheet" href="./design-system.css">',`<style>\n${css}\n</style>`);
-for(const file of ['engine-core.js','gameplay-rules.js','rpg-system.js','rpg-ui.js','ui-shell.js','world-art.js','game.js','world-domain.js','world-ui.js','world-start.js','world-online.js']){
+for(const file of ['engine-core.js','gameplay-rules.js','rpg-system.js','rpg-ui.js','ui-shell.js','world-art.js','game.js','world-domain.js','world-ui.js','world-start.js','world-online.js','trainer-core.js','visual-catalog.js','voice-data.js','beta-features.js']){
   const script=fs.readFileSync(path.join(dir,file),'utf8').replaceAll('</script','<\/script');
   const old=`<script src="./${file}"></script>`;
   if(!html.includes(old))throw Error('Script tag absent: '+file);
