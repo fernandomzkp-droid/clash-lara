@@ -39,8 +39,14 @@ jobs:
           node game/tests/test-browser.cjs
       - uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: clash-lara-beta2-debug-v1
+          path: .beta-signing/debug.keystore
+          key: clash-lara-beta2-debug-v2
+      - name: Preparar chave de teste persistente
+        run: |
+          mkdir -p .beta-signing
+          if [ ! -f .beta-signing/debug.keystore ]; then
+            keytool -genkeypair -keystore .beta-signing/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname 'CN=Clash Lara Beta,O=Lara,C=BR' -keyalg RSA -keysize 2048 -validity 10000
+          fi
       - name: Compilar APK
         run: gradle -p android --no-daemon assembleDebug
       - name: Verificar assinatura e preparar arquivo

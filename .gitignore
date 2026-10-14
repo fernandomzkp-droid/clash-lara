@@ -18,3 +18,5 @@ android/local.properties
 **/*.sqlite-shm
 **/*.pre-sqlite.bak
 entrega/
+
+.beta-signing/
