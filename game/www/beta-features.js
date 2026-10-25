@@ -31,15 +31,108 @@ function drawElement(ctx,size,age){
 }
 window.LaraBeta={budget,speak,drawHero,drawElement,color:()=>V.ELEMENTS[prefs.element].color,reduced};
 const modal=document.createElement('div');modal.className='screen hidden';modal.style.zIndex='90';modal.id='betaWorkshop';
-modal.innerHTML=`<div class="panel"><div class="modal-head"><h2>Treino e aparência</h2><button class="xbtn" id="betaClose" aria-label="Fechar">×</button></div><p>Seu herói evolui em combate. Aqui você também treina uma classe por tempo e personaliza o visual.</p><h3>Treinamento offline</h3><select id="betaClass" aria-label="Classe em treinamento"></select><p id="betaTrainState" aria-live="polite"></p><button class="bigbutton" id="betaTrain">INICIAR CLASSE ESCOLHIDA</button><button class="bigbutton secondary" id="betaPause">PAUSAR TREINO</button><p class="tiny">Treino independente: nível 0→1 leva 1h; depois 10h, 100h… Limite 9. Conta até 7 dias por abertura. Não altera XP de combate ou classificação online.</p><div id="betaLevels" class="notice"></div><h3>Aparência do herói</h3><div class="prefs"><label for="betaElement">ELEMENTO VISUAL</label><select id="betaElement"></select><label for="betaModel">MODELO</label><select id="betaModel"></select><label for="betaUpgrade">BRILHO</label><select id="betaUpgrade"></select><label for="betaQuality">QUALIDADE</label><select id="betaQuality"><option value="eco">Eco</option><option value="balanced">Equilibrado</option><option value="high">Alto</option></select><button class="bigbutton secondary" id="betaVoice">ATIVAR FALAS</button><small id="betaVoiceStatus">Falas usam uma voz offline instalada no aparelho.</small></div><div id="betaPreview" style="max-width:180px;margin:auto"></div><p class="tiny">Visual cosmético; atributos vêm dos equipamentos conquistados. 20 modelos por classe, 8 elementos e 13 brilhos.</p><h3>Guardar progresso</h3><button class="bigbutton secondary" id="betaExport">EXPORTAR SAVE</button><textarea id="betaSave" aria-label="Código de backup do save" rows="4" style="width:100%;color:#eef;background:#10213a"></textarea><button class="bigbutton secondary" id="betaImport">IMPORTAR SAVE COLADO</button><p id="betaStatus" role="status"></p></div>`;
+modal.innerHTML=`<div class="panel workshop-root">
+  <div class="modal-head">
+    <div><p class="eyebrow">CLASH LARA · HERO STUDIO / OFICINA</p><h2>Seu herói, seu estilo</h2></div>
+    <button class="xbtn" id="betaClose" aria-label="Fechar">×</button>
+  </div>
+  <p class="workshop-intro">Personalize seu personagem, acompanhe o treino individual das classes e proteja seu progresso.</p>
+  <section class="workshop-panel" aria-label="Visualização do herói">
+    <div class="workshop-section-title"><h3>✦ Aparência em tempo real</h3><span class="tag">100% COSMÉTICO</span></div>
+    <div class="workshop-avatar">
+      <div id="betaPreview" role="img" aria-label="Prévia da armadura selecionada"></div>
+      <div class="workshop-avatar-caption">
+        <strong id="betaAppearanceName">Duelista</strong>
+        <span id="betaAppearanceElement">Fogo · +0</span>
+        <span id="betaAppearanceModel">Modelo Batedor</span>
+        <small>O visual muda na prévia e no combate. Equipamentos e atributos continuam independentes.</small>
+      </div>
+    </div>
+    <div class="workshop-fields" style="margin-top:12px">
+      <div class="workshop-field"><label for="betaElement">ELEMENTO</label><select id="betaElement"></select></div>
+      <div class="workshop-field"><label for="betaModel">MODELO DE ARMADURA</label><select id="betaModel"></select></div>
+      <div class="workshop-field"><label for="betaUpgrade">AURA / BRILHO</label><select id="betaUpgrade"></select></div>
+      <div class="workshop-field"><label for="betaQuality">EFEITOS / DESEMPENHO</label><select id="betaQuality"><option value="eco">Eco</option><option value="balanced">Equilibrado</option><option value="high">Alto</option></select></div>
+    </div>
+    <button class="bigbutton secondary" id="betaVoice">ATIVAR FALAS</button>
+    <small id="betaVoiceStatus">Falas utilizam a voz offline instalada no aparelho.</small>
+  </section>
+  <section class="workshop-panel" aria-label="Treinamento independente das classes">
+    <div class="workshop-section-title"><h3>⚔ Treinamento por tempo</h3><span class="tag">NÍVEL 0–9</span></div>
+    <div class="workshop-field"><label for="betaClass">CLASSE EM TREINAMENTO</label><select id="betaClass" aria-label="Classe em treinamento"></select></div>
+    <p class="workshop-train-state" id="betaTrainState" aria-live="polite"></p>
+    <div class="workshop-progress-track" role="progressbar" aria-label="Progresso do treino" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="betaTrainProgress"><span id="betaTrainFill"></span></div>
+    <div class="workshop-cta-row">
+      <button class="bigbutton" id="betaTrain">INICIAR CLASSE ESCOLHIDA</button>
+      <button class="bigbutton secondary" id="betaPause">PAUSAR TREINO</button>
+    </div>
+    <p class="workshop-help">Evolução própria: 1h → 10h → 100h… Até 7 dias contabilizados por abertura. Não altera o XP de combate nem o ranking online.</p>
+    <div id="betaLevels" class="notice" aria-label="Níveis de todas as classes"></div>
+  </section>
+  <details class="workshop-panel workshop-save" open>
+    <summary>▤ Backup e transferência de save</summary>
+    <p class="workshop-help">Copie seu save antes de trocar de aparelho. Importar substitui o progresso atual após confirmação.</p>
+    <button class="bigbutton secondary" id="betaExport">EXPORTAR SAVE</button>
+    <textarea id="betaSave" aria-label="Código de backup do save" rows="4" placeholder="Cole aqui o save completo para importar"></textarea>
+    <button class="bigbutton secondary" id="betaImport">IMPORTAR SAVE COLADO</button>
+    <p id="betaStatus" role="status" aria-live="polite"></p>
+  </details>
+  <p class="workshop-card-note">20 modelos por classe × 8 elementos × 13 auras. As 20.800 variantes são combinações visuais parametrizadas, não sprites únicos.</p>
+</div>`;
 document.body.append(modal);const $=id=>document.getElementById(id);
 function options(id,values){for(const [value,label]of values){const o=document.createElement('option');o.value=value;o.textContent=label;$(id).append(o)}}
 options('betaClass',C.CLASSES.map(c=>[c,c]));options('betaElement',Object.keys(V.ELEMENTS).map(c=>[c,c]));options('betaModel',V.PROFILES.map((n,i)=>[i+1,n]));options('betaUpgrade',Array.from({length:13},(_,i)=>[i,'+'+i]));
 function persist(){write('laraTrainerV2',trainer)}
-function refresh(){trainer=C.advance(trainer,Date.now());persist();const t=trainer.classes[trainer.selected];$('betaTrainState').textContent=(trainer.active?'Treinando '+trainer.active:'Treino pausado')+' · Seleção Nv. '+t.level+(t.level<C.MAX_LEVEL?' · '+(t.progressMs/C.HOUR).toFixed(2)+' / '+(C.cost(t.level)/C.HOUR).toLocaleString('pt-BR')+'h':' · máximo');$('betaLevels').textContent=C.CLASSES.map(c=>c+': '+trainer.classes[c].level).join(' · ');}
-function preview(){write('laraBetaLookV1',prefs);$('betaPreview').innerHTML=V.armorSVG(className(),prefs.element,prefs.upgrade,prefs.quality,reduced(),prefs.model);}
-function open(){if(window.RuneNetworkConnected){$('betaStatus').textContent='Saia da sala para importar um save.';}modal.classList.remove('hidden');$('betaClass').value=trainer.selected;for(const [id,key]of [['betaElement','element'],['betaModel','model'],['betaUpgrade','upgrade'],['betaQuality','quality']])$(id).value=prefs[key];refresh();preview();}
-for(const parent of [document.querySelector('#welcome .panel'),document.querySelector('#settingsModal .panel')]){const b=document.createElement('button');b.className='bigbutton secondary';b.textContent='TREINO POR TEMPO · VISUAIS · VOZES';b.onclick=open;parent.append(b);}
+function refresh(){
+ trainer=C.advance(trainer,Date.now());persist();const t=trainer.classes[trainer.selected];
+ $('betaTrainState').textContent=(trainer.active?'Treinando '+trainer.active:'Treino pausado')+' · Seleção Nv. '+t.level+(t.level<C.MAX_LEVEL?' · '+(t.progressMs/C.HOUR).toFixed(2)+' / '+(C.cost(t.level)/C.HOUR).toLocaleString('pt-BR')+'h':' · máximo');
+ $('betaLevels').textContent=C.CLASSES.map(c=>c+': '+trainer.classes[c].level).join(' · ');
+ const progress=t.level>=C.MAX_LEVEL?100:Math.max(0,Math.min(100,t.progressMs/C.cost(t.level)*100));
+ $('betaTrainFill').style.width=progress.toFixed(1)+'%';
+ $('betaTrainProgress').setAttribute('aria-valuenow',String(Math.round(progress)));
+}
+function preview(){
+ write('laraBetaLookV1',prefs);
+ const name=className();
+ $('betaPreview').innerHTML=V.armorSVG(name,prefs.element,prefs.upgrade,prefs.quality,reduced(),prefs.model);
+ $('betaAppearanceName').textContent=name;
+ $('betaAppearanceElement').textContent=prefs.element+' · Aura +'+prefs.upgrade;
+ $('betaAppearanceModel').textContent='Modelo '+V.PROFILES[prefs.model-1];
+ renderMenuHero();
+}
+function open(){$('betaStatus').textContent=window.RuneNetworkConnected?'Saia da sala para importar um save.':'';modal.classList.remove('hidden');$('betaClass').value=trainer.selected;for(const [id,key]of [['betaElement','element'],['betaModel','model'],['betaUpgrade','upgrade'],['betaQuality','quality']])$(id).value=prefs[key];refresh();preview();}
+for(const parent of [document.querySelector('#welcome .panel'),document.querySelector('#settingsModal .panel')]){
+ const b=document.createElement('button');b.className='bigbutton secondary';
+ b.textContent='TREINO POR TEMPO · VISUAIS · VOZES';b.onclick=open;
+ if(parent.closest('#welcome')){b.id='openHeroStudio';b.classList.add('workshop-entry');}
+ parent.append(b);
+}
+// Reorganize existing actions without replacing the buttons or their game handlers.
+const landing=document.querySelector('#welcome .panel'),heroMark=landing.querySelector('.hero-mark');
+const primary=document.createElement('div');primary.className='menu-cta-primary';
+landing.insertBefore(primary,$('heroBtn'));
+for(const id of ['playBtn','openWorldBtn','heroBtn'])primary.append($(id));
+const toolRow=document.createElement('div');toolRow.className='menu-tools';
+landing.insertBefore(toolRow,landing.querySelector('.welcome-footnote'));
+for(const id of ['trainBtn','introHelp','openHeroStudio'])toolRow.append($(id));
+const liveStage=document.createElement('div');liveStage.className='menu-hero-stage';
+heroMark.classList.add('has-hero-portrait');heroMark.append(liveStage);
+let lastMenuRender='';
+function renderMenuHero(){
+ try{
+  const name=className(),signature=[name,prefs.element,prefs.model,prefs.upgrade,prefs.quality,reduced()].join('/');
+  if(signature===lastMenuRender)return;
+  const svg=V.armorSVG(name,prefs.element,prefs.upgrade,prefs.quality,reduced(),prefs.model);
+  liveStage.innerHTML=svg;
+  const caption=document.createElement('span');caption.className='menu-hero-title';
+  caption.textContent=name+' · '+prefs.element+' +'+prefs.upgrade;
+  liveStage.append(caption);
+  const colors=V.ELEMENTS[prefs.element];
+  liveStage.style.setProperty('--stage-glow',colors.color+'55');
+  lastMenuRender=signature;
+ }catch(e){heroMark.classList.remove('has-hero-portrait');}
+}
+renderMenuHero();
 $('betaClose').onclick=()=>modal.classList.add('hidden');
 $('betaClass').onchange=()=>{trainer=C.select(trainer,$('betaClass').value,Date.now());refresh()};
 $('betaTrain').onclick=()=>{trainer=C.startSelected(trainer,Date.now());refresh()};$('betaPause').onclick=()=>{trainer=C.advance(trainer,Date.now());trainer.active=null;refresh()};
@@ -65,7 +158,7 @@ $('betaImport').onclick=()=>{try{if(window.RuneNetworkConnected)throw Error('Sai
   throw Error('Falha ao gravar o save; progresso anterior restaurado.');
  }
  location.reload();}catch(e){$('betaStatus').textContent=e.message;}};
-setInterval(()=>{if(!document.hidden){if(!modal.classList.contains('hidden'))refresh();else{trainer=C.advance(trainer,Date.now());persist();}}},5000);
+setInterval(()=>{if(!document.hidden){if(!modal.classList.contains('hidden'))refresh();else{trainer=C.advance(trainer,Date.now());persist();}if(!document.querySelector('#welcome').classList.contains('hidden'))renderMenuHero();}},5000);
 document.addEventListener('visibilitychange',()=>{trainer=C.advance(trainer,Date.now());persist();if(document.hidden){if(window.NativeVoice)NativeVoice.stop();window.speechSynthesis?.cancel();}});
 refresh();
 })();
