@@ -56,6 +56,12 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose entrega/Clash-Lara-Etapas-Beta.apk
           cd entrega
           sha256sum Clash-Lara-Etapas-Beta.apk > SHA256.txt
+      - name: Empacotar fontes do commit compilado
+        run: |
+          git archive --format=zip --output=entrega/Clash-Lara-Codigo-Fonte.zip HEAD
+          sha256sum entrega/Clash-Lara-Codigo-Fonte.zip > entrega/CODIGO_SHA256.txt
+          git rev-parse HEAD > entrega/COMMIT.txt
+          unzip -t entrega/Clash-Lara-Codigo-Fonte.zip > /dev/null
       - uses: actions/upload-artifact@v4
         with:
           name: Clash-Lara-Beta-APK
