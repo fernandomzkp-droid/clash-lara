@@ -47,7 +47,24 @@ for(const [id,key]of [['betaElement','element'],['betaModel','model'],['betaUpgr
 $('betaVoice').onclick=()=>{voiceEnabled=!voiceEnabled;if(window.NativeVoice)NativeVoice.enable(voiceEnabled);if(!voiceEnabled)window.speechSynthesis?.cancel();$('betaVoice').textContent=voiceEnabled?'DESATIVAR FALAS':'ATIVAR FALAS';$('betaVoiceStatus').textContent=window.NativeVoice&&!NativeVoice.available()?'Nenhuma voz offline em português pronta. Instale-a nas configurações de voz do Android e reabra o jogo.':'Falas '+(voiceEnabled?'ativadas':'desativadas');speak()};
 const keys=['laraRuneProfileV5','laraRuneWorldV6','laraRuneCustomV1','laraRuneBestV1','laraTrainerV2','laraBetaLookV1'];
 $('betaExport').onclick=()=>{refresh();const data={format:'lara-save-1',values:{}};for(const k of keys){const v=localStorage.getItem(k);if(v!==null)data.values[k]=v;}const code=JSON.stringify(data);$('betaSave').value=code;$('betaSave').select();if(window.NativeBackup)NativeBackup.share(code);$('betaStatus').textContent='Save preparado. Guarde o texto completo.';};
-$('betaImport').onclick=()=>{try{if(window.RuneNetworkConnected)throw Error('Saia da sala antes de importar.');const raw=$('betaSave').value;if(raw.length>500000)throw Error('Save muito grande.');const data=JSON.parse(raw);if(data.format!=='lara-save-1'||!data.values||typeof data.values!=='object')throw Error('Formato inválido.');const safe={};for(const k of keys)if(Object.hasOwn(data.values,k)){if(typeof data.values[k]!=='string')throw Error('Valor inválido.');JSON.parse(data.values[k]);safe[k]=data.values[k];}if(!Object.keys(safe).length)throw Error('Save vazio.');if(!confirm('Substituir o progresso deste aplicativo pelo save colado?'))return;const previous={};for(const k of keys)previous[k]=localStorage.getItem(k);write('laraSaveBeforeImport',previous);for(const k of keys){if(k in safe)localStorage.setItem(k,safe[k]);else localStorage.removeItem(k);}location.reload();}catch(e){$('betaStatus').textContent=e.message;}};
+$('betaImport').onclick=()=>{try{if(window.RuneNetworkConnected)throw Error('Saia da sala antes de importar.');const raw=$('betaSave').value;if(raw.length>500000)throw Error('Save muito grande.');const data=JSON.parse(raw);if(data.format!=='lara-save-1'||!data.values||typeof data.values!=='object')throw Error('Formato inválido.');const safe={};for(const k of keys)if(Object.hasOwn(data.values,k)){if(typeof data.values[k]!=='string')throw Error('Valor inválido.');JSON.parse(data.values[k]);safe[k]=data.values[k];}if(!Object.keys(safe).length)throw Error('Save vazio.');if(!confirm('Substituir o progresso deste aplicativo pelo save colado?'))return;
+ const previous={};for(const k of keys)previous[k]=localStorage.getItem(k);
+ // Backup is written before mutation; if storage quota or I/O fails during import,
+ // restore every managed key so a partial import cannot corrupt progression.
+ write('laraSaveBeforeImport',previous);
+ try{
+  for(const k of keys){if(k in safe)localStorage.setItem(k,safe[k]);else localStorage.removeItem(k);}
+ }catch(importError){
+  try{
+   // Free any newly imported space before restoring the original snapshot.
+   for(const k of keys)localStorage.removeItem(k);
+   for(const k of keys)if(previous[k]!==null)localStorage.setItem(k,previous[k]);
+  }catch(restoreError){
+   throw Error('Falha ao importar e restaurar automaticamente. Backup disponível em laraSaveBeforeImport; não limpe os dados do app.');
+  }
+  throw Error('Falha ao gravar o save; progresso anterior restaurado.');
+ }
+ location.reload();}catch(e){$('betaStatus').textContent=e.message;}};
 setInterval(()=>{if(!document.hidden){if(!modal.classList.contains('hidden'))refresh();else{trainer=C.advance(trainer,Date.now());persist();}}},5000);
 document.addEventListener('visibilitychange',()=>{trainer=C.advance(trainer,Date.now());persist();if(document.hidden){if(window.NativeVoice)NativeVoice.stop();window.speechSynthesis?.cancel();}});
 refresh();
