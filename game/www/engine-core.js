@@ -1,18 +1,40 @@
 /* Clash Lara core: deterministic recognition and sequence evaluation. */
 (function(root,factory){ const api=factory(); if(typeof module !== 'undefined' && module.exports) module.exports=api; root.RuneCore=api; })(typeof globalThis !== 'undefined'?globalThis:this,function(){
  'use strict';
- const glyphs={R:{icon:'→',name:'Corte'},U:{icon:'↑',name:'Ascensão'},D:{icon:'↓',name:'Guarda'},L:{icon:'←',name:'Esquiva'},O:{icon:'○',name:'Arcano'},Z:{icon:'ϟ',name:'Raio'}};
+ const glyphs={R:{icon:'→',name:'Corte'},U:{icon:'↑',name:'Ascensão'},D:{icon:'↓',name:'Guarda'},L:{icon:'←',name:'Esquiva'},O:{icon:'○',name:'Arcano'}};
  const defaults=[
   {seq:'RR',name:'Lâminas Gêmeas',damage:24,effect:'damage',description:'Dois cortes, explosão de dano'},
   {seq:'UR',name:'Ruptura',damage:21,effect:'break',description:'Rompe armadura e ataca'},
   {seq:'DR',name:'Riposta',damage:19,effect:'shield',description:'Escudo seguido de contragolpe'},
   {seq:'LU',name:'Passo Relâmpago',damage:19,effect:'dodge',description:'Desvia e atordoa brevemente'},
   {seq:'OR',name:'Lâmina Arcana',damage:28,effect:'burn',description:'Corte com queimadura'},
-  {seq:'ZR',name:'Choque Cortante',damage:25,effect:'stun',description:'Interrompe a conjuração'},
+  {seq:'UL',name:'Choque Cortante',damage:25,effect:'stun',description:'Ruptura e descarga: interrompe a conjuração'},
   {seq:'RUR',name:'Dança de Lâminas',damage:43,effect:'area',description:'Três ataques com dano em área'},
   {seq:'DLR',name:'Fantasma Defensor',damage:34,effect:'shield',description:'Defesa e contra-ataque veloz'},
-  {seq:'OZR',name:'Tempestade Rúnica',damage:47,effect:'stun',description:'Raio arcano e paralisia'},
-  {seq:'OOZR',name:'Eclipse',damage:70,effect:'nova',description:'Explosão de quatro símbolos'}
+  {seq:'OUL',name:'Tempestade Rúnica',damage:47,effect:'stun',description:'Tempestade arcana e paralisia'},
+  {seq:'OOLR',name:'Eclipse',damage:70,effect:'nova',description:'Explosão de quatro símbolos'},
+  {seq:'RDLU',name:'Dança do Aço',damage:48,effect:'area',description:'Giro de quatro cortes'},
+  {seq:'RDOO',name:'Impacto da Aurora',damage:49,effect:'burn',description:'Arma incandescente'},
+  {seq:'LORO',name:'Lâmina Fantasma',damage:45,effect:'dodge',description:'Contra-ataque veloz'},
+  {seq:'LOOD',name:'Manto Prismático',damage:38,effect:'shield',description:'Barreira elemental'},
+  {seq:'DUOO',name:'Revelação de Luz',damage:47,effect:'heal',description:'Cura com explosão'},
+  {seq:'DDOR',name:'Bastião de Vitra',damage:50,effect:'shield',description:'Defesa ancestral'},
+  {seq:'UOLD',name:'Martelo Glacial',damage:55,effect:'stun',description:'Impacto congelante'},
+  {seq:'UOOR',name:'Fulgor Celeste',damage:60,effect:'nova',description:'Explosão radiante'},
+  {seq:'LDUR',name:'Rastro Carmesim',damage:53,effect:'burn',description:'Lâmina de fogo'},
+  {seq:'LDUO',name:'Véu do Equinócio',damage:50,effect:'shield',description:'Bloqueio e magia'},
+  {seq:'ORRL',name:'Estilhaço Astral',damage:56,effect:'area',description:'Fragmentos elementais'},
+  {seq:'ODDL',name:'Círculo Protetor',damage:51,effect:'heal',description:'Regenera e protege'},
+  {seq:'ROLUD',name:'Fenda Imperial',damage:82,effect:'area',description:'Sequência mestre de cinco gestos'},
+  {seq:'LODRU',name:'Caminho dos Espíritos',damage:77,effect:'summon',description:'Chamado espiritual'},
+  {seq:'DOLUR',name:'Bênção do Guardião',damage:79,effect:'heal',description:'Restaura vitalidade'},
+  {seq:'ULODR',name:'Punho do Trovão',damage:86,effect:'stun',description:'Descarga elétrica sem zigue-zague'},
+  {seq:'OUDLR',name:'Arsenal Elemental',damage:88,effect:'nova',description:'Cinco elementos em sincronia'},
+  {seq:'RLODUD',name:'Corte do Eclipse',damage:112,effect:'area',description:'Maestria com seis gestos'},
+  {seq:'LUDORL',name:'Passagem Celestial',damage:105,effect:'dodge',description:'Trajetória superior de seis gestos'},
+  {seq:'DROULR',name:'Escudo dos Ancestrais',damage:100,effect:'shield',description:'Defesa suprema'},
+  {seq:'UDOLOR',name:'Coração da Tempestade',damage:125,effect:'stun',description:'Descarga suprema de seis gestos'},
+  {seq:'OLDRUO',name:'Juízo do Sol',damage:130,effect:'nova',description:'Runa mestre de seis gestos'}
  ];
  function distance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
  function resample(input,n=40){
@@ -35,7 +57,6 @@
    p.forEach(q=>{minX=Math.min(minX,q.x);maxX=Math.max(maxX,q.x);minY=Math.min(minY,q.y);maxY=Math.max(maxY,q.y)});
    const d=Math.max(maxX-minX,maxY-minY,1);return p.map(q=>({x:(q.x-minX)/d,y:(q.y-minY)/d}));
  }
- const zTemplate=normalized([{x:0,y:0},{x:100,y:0},{x:0,y:100},{x:100,y:100}]);
  function classify(points){
    if(!points||points.length<2)return null;
    const p=resample(points,40);if(!p.length)return null;
@@ -53,12 +74,6 @@
      }
      if(Math.abs(angle)>=Math.PI*1.62){const quality=Math.min(1,.63+Math.min(.22,(.37-closure)*.6)+Math.min(.15,(Math.abs(angle)/(2*Math.PI)-.75)*.6));return {code:'O',quality:+quality.toFixed(3)}}
    }
-   // Angular shape matching is only used for deliberate three-segment Z strokes.
-   if(w>31&&h>26&&w/h>.55&&w/h<2.5&&total/diag>2.05&&closure>.4){
-     const q=normalized(points);let err=0;
-     for(let i=0;i<q.length;i++)err+=distance(q[i],zTemplate[i]);err/=q.length;
-     if(err<.24){return {code:'Z',quality:+Math.min(1,.77+(0.24-err)*1.05).toFixed(3)}}
-   }
    const dx=end.x-start.x,dy=end.y-start.y,direct=Math.hypot(dx,dy);
    if(direct<31||direct/total<.71)return null;
    let code=null, dominance=0;
@@ -74,8 +89,8 @@
    for(const combo of ordered){
      const n=combo.seq.length, part=recent.slice(-n);
      if(part.length!==n || part.map(x=>x.code).join('')!==combo.seq)continue;
-     if(part.some((s,i)=>i>0&&(s.time-part[i-1].time)>1450))continue;
-     if(now-part[0].time>7200)continue;
+     if(part.some((s,i)=>i>0&&(s.time-part[i-1].time)>1250))continue;
+     if(now-part[0].time>4000)continue;
      const avg=part.reduce((a,s)=>a+s.quality,0)/n;
      const fast=part.every((s,i)=>i===0 || (s.time-part[i-1].time>=100 && s.time-part[i-1].time<=1120));
      const perfect=avg>=.875 && part.every(s=>s.quality>=.80) && fast;
@@ -86,10 +101,10 @@
  // Longest *anchored* prefix wins: never fire UR during R→U→R.
  // No buffering beyond a valid sequence: short combos still fire on second gesture.
  function advanceCombo(previous, allCombos, newGlyph, now){
-   if(!newGlyph||!/^[RUDLOZ]$/.test(newGlyph.code))return {sequence:[],combo:null,pending:false};
-   const fresh=(previous||[]).filter((p,i,a)=>now-p.time<=7200 && (i===a.length-1 || a[i+1].time-p.time<=1450));
+   if(!newGlyph||!/^[RUDLO]$/.test(newGlyph.code))return {sequence:[],combo:null,pending:false};
+   const fresh=(previous||[]).filter((p,i,a)=>now-p.time<=4000 && (i===a.length-1 || a[i+1].time-p.time<=1250));
    let source=[...fresh,newGlyph].slice(-6);
-   if(source.length>1&&source[source.length-1].time-source[source.length-2].time>1450)source=[newGlyph];
+   if(source.length>1&&source[source.length-1].time-source[source.length-2].time>1250)source=[newGlyph];
    // Search from oldest possible command; fall back to suffix only after it is invalid.
    for(let off=0;off<source.length;off++){
      const part=source.slice(off),text=part.map(x=>x.code).join('');
