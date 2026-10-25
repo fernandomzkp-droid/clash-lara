@@ -86,3 +86,145 @@ button{transition:transform .16s ease,background .18s ease,border-color .18s eas
 .lan-recovery{border-top:1px solid #d5b98730;padding:7px 0;margin-top:6px}.lan-recovery summary{font-size:10px;color:#d6c2a3;font-weight:800;cursor:pointer}.lan-recovery label{font-size:9px;display:block;color:#cbb88f;margin:7px 0 3px}.lan-recovery input{width:100%;min-height:40px;display:block;margin:6px 0;background:#111c32;border:1px solid #60718a;border-radius:8px;color:#e5ecff;padding:8px;font-size:10px}.lan-recovery button{width:100%;margin:5px 0}.lan-recovery code{display:block;font-size:10px;white-space:normal}
 
 .lan-connected summary{cursor:pointer;font-weight:900;color:#efd198;font-size:10px;letter-spacing:.4px;padding:8px 5px;min-height:40px}.lan-connected[open] summary{border-bottom:1px solid #c09c6c55;margin-bottom:8px}.lan-connected:not([open]){padding-bottom:0}
+
+
+/* Clash Lara 0.9.1 — character-driven mobile menu and hero studio.
+ * Non-intrusive visual layer; combat math, network rules and saves are unchanged. */
+#welcome .panel{
+  position:relative;max-width:500px;overflow-x:hidden;
+  background:radial-gradient(ellipse at 50% -10%,#273c58 0%,#111e32 29%,#080f1d 83%);
+  border:1px solid #4c9eb49e;box-shadow:0 22px 70px #030914df,inset 0 1px #dcf8ff20;
+}
+#welcome .panel::before{
+  content:"";position:absolute;top:0;left:10%;right:10%;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#5eeaff,#f3c681,transparent);
+  box-shadow:0 0 14px #5eeaff66;
+}
+#welcome .welcome-heading{border-bottom:1px solid #93b2bc20;padding-bottom:7px}
+#welcome .welcome-edition{border-color:#56cbd588;color:#a9f6f1;background:#0c2934}
+#welcome .panel .eyebrow{color:#80dfe3;letter-spacing:1.5px}
+#welcome .hero-mark{
+  height:166px;max-width:380px;margin:8px auto 1px;border-radius:20px;
+  background:radial-gradient(ellipse at 50% 54%,#53d8db29,transparent 55%),linear-gradient(180deg,#21314a33,#0812210a);
+  isolation:isolate;
+}
+#welcome .hero-mark::before{
+  content:"";position:absolute;z-index:-1;inset:12px 38px 2px;border-radius:50%;
+  background:repeating-radial-gradient(circle at 50% 50%,#8dd3e112 0 1px,transparent 2px 22px);
+}
+#welcome .hero-mark.has-hero-portrait .hero-core{display:none}
+#welcome .halo-a{border-color:#6deafa88;box-shadow:0 0 21px #65d1e53b,inset 0 0 20px #68e3f51c;animation:clashHalo 5.5s ease-in-out infinite alternate}
+#welcome .halo-b{border-color:#cbb68060;animation:clashOrbit 12s linear infinite}
+#welcome .menu-hero-stage{
+  position:absolute;inset:-17px 0 -6px;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;pointer-events:none;z-index:1;
+}
+#welcome .menu-hero-stage svg{
+  height:165px;width:150px;flex:none;overflow:visible;filter:drop-shadow(0 7px 12px #040c18) drop-shadow(0 0 12px var(--stage-glow,#75e5ec4d));
+}
+#welcome .menu-hero-title{
+  position:absolute;bottom:5px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  padding:4px 10px;border:1px solid #6fcbd17a;border-radius:15px;
+  background:#061725e8;color:#e0fcff;font-size:9px;font-weight:850;letter-spacing:.75px;
+}
+#welcome .orbit-runic{z-index:2;color:#b0f5f3}
+#welcome .panel h1{
+  text-align:center;font-size:clamp(42px,11vw,59px);line-height:.86;letter-spacing:-1.8px;
+  text-shadow:0 3px 14px #0008,0 0 20px #6ce9ff23;margin:0 0 9px;
+}
+#welcome .panel h1 .subtitle{color:#74e1e9;text-shadow:0 0 18px #51c6e364}
+#welcome .panel .hero-tagline{color:#d0edf2;letter-spacing:.7px;font-size:9px;margin:6px 0 9px}
+#welcome .panel .hero-tagline b{color:#f8dba5!important}
+#welcome .hero-teaser{border-color:#5baeb19a;background:linear-gradient(120deg,#123444,#19273e);box-shadow:inset 0 1px #ffffff15}
+#welcome .hero-teaser>span:first-child{background:#102c39;border-color:#5fcbd19c}
+#welcome .hero-teaser strong{color:#ecfcff}
+#welcome .bigbutton{min-height:44px;touch-action:manipulation}
+#welcome .menu-cta-primary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}
+#welcome .menu-cta-primary .bigbutton{margin:0;min-height:55px;font-size:10px;line-height:1.35;padding:10px 6px;letter-spacing:.4px}
+#welcome .menu-cta-primary #playBtn{
+  grid-column:1/-1;min-height:51px;font-size:13px;
+  background:linear-gradient(105deg,#88eff0 0%,#49bdce 57%,#a6d5c4 100%);
+  border-color:#c5ffffa9;color:#061523;box-shadow:0 7px 26px #4aa9c13d;
+}
+#welcome .menu-cta-primary #openWorldBtn{background:linear-gradient(120deg,#223c4c,#244c53);border-color:#76c9ba;color:#d4fff0}
+#welcome .menu-cta-primary #heroBtn{background:linear-gradient(120deg,#3e3455,#242e4d);border-color:#ac9bd4;color:#eddbff}
+#welcome .menu-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:7px}
+#welcome .menu-tools .bigbutton{margin:0!important;font-size:9px;letter-spacing:.2px;padding:7px 5px;line-height:1.3;min-height:43px}
+#welcome .menu-tools .workshop-entry{grid-column:1/-1;background:linear-gradient(115deg,#173344,#142639);color:#bff6f0;border-color:#68b2c4}
+#welcome .mini-instructions{margin:8px 0!important}
+#welcome .mini-instructions div{border-color:#3c819d61;background:#0c1d2e}
+#welcome .mini-instructions b{color:#91f4fa}
+@keyframes clashHalo{to{transform:scale(1.045);opacity:.7}}
+@keyframes clashOrbit{to{transform:rotate(336deg)}}
+
+/* Hero studio: sections and interactive live visual preview. */
+#betaWorkshop{z-index:90;align-items:center;padding:10px 9px;background:#050a14ef}
+#betaWorkshop .panel{max-width:570px;padding:16px 15px;max-height:calc(100dvh - 20px);
+  background:radial-gradient(ellipse at 50% 0%,#27394d 0%,#101e31 30%,#090e1e 100%);
+  border:1px solid #59b8c5a6;box-shadow:0 19px 60px #000d,inset 0 1px #defaff21}
+#betaWorkshop .eyebrow{font-size:9px;letter-spacing:1.6px;color:#8ae5e8}
+#betaWorkshop h2{color:#f0fdff;font-size:24px;letter-spacing:-.5px;margin:2px 0 6px}
+#betaWorkshop h3{font-size:13px;color:#ecf6f8;letter-spacing:.4px;margin:0 0 10px}
+#betaWorkshop .workshop-intro{font-size:11px;margin:2px 0 12px;color:#a8ccd5}
+#betaWorkshop .workshop-panel{background:linear-gradient(145deg,#111e32,#0a1628);
+  border:1px solid #52799278;border-radius:15px;padding:12px;margin:10px 0}
+#betaWorkshop .workshop-section-title{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:9px}
+#betaWorkshop .workshop-section-title .tag{font-size:9px;letter-spacing:.8px;color:#84dadd}
+#betaWorkshop .workshop-avatar{
+  display:grid;grid-template-columns:155px minmax(0,1fr);gap:10px;align-items:center;
+  padding:9px;border:1px solid #5eb9b666;border-radius:13px;
+  background:radial-gradient(ellipse at 26% 40%,#5c8f9755,transparent 60%),#0b1a2a;
+}
+#betaWorkshop #betaPreview{
+  height:176px;display:grid;place-items:center;overflow:hidden;margin:0!important;max-width:none!important;
+  border-radius:12px;background:radial-gradient(circle at center,#334d6066,transparent 70%);
+}
+#betaWorkshop #betaPreview svg{height:177px;max-width:100%;filter:drop-shadow(0 6px 8px #000a)}
+#betaWorkshop .workshop-avatar-caption{display:flex;flex-direction:column;gap:6px;min-width:0}
+#betaWorkshop .workshop-avatar-caption strong{font-size:16px;color:#e8faff;line-height:1.2}
+#betaWorkshop .workshop-avatar-caption span{font-size:10px;color:#9fdae2}
+#betaWorkshop .workshop-avatar-caption small{font-size:9px;line-height:1.45;color:#9bb9cc}
+#betaWorkshop .workshop-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:9px;row-gap:7px}
+#betaWorkshop .workshop-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+#betaWorkshop .workshop-field label{font-size:9px;color:#a9d7e1;font-weight:850;letter-spacing:.6px}
+#betaWorkshop .workshop-field select,#betaWorkshop textarea{width:100%;min-width:0;min-height:43px;
+  border-radius:9px;border:1px solid #567f997f;background:#0a172b;color:#f0fbff;
+  font-size:12px;padding:8px 9px}
+#betaWorkshop .workshop-field select:focus-visible,#betaWorkshop textarea:focus-visible{outline:2px solid #71e8f0}
+#betaWorkshop .workshop-cta-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#betaWorkshop .workshop-cta-row button{margin:2px 0;min-height:45px;font-size:10px;letter-spacing:.1px;padding:9px}
+#betaWorkshop .workshop-train-state{font-size:11px;font-weight:800;color:#d6f7f1;margin:7px 0}
+#betaWorkshop .workshop-progress-track{height:7px;border:1px solid #568b9a66;overflow:hidden;
+  border-radius:10px;background:#071322;margin:8px 0}
+#betaWorkshop .workshop-progress-track span{display:block;width:0;height:100%;border-radius:10px;
+  transition:width .25s;background:linear-gradient(90deg,#66c7d9,#f7d39c)}
+#betaWorkshop #betaLevels{font-size:10px;line-height:1.5;max-height:80px;overflow:auto;padding:8px;color:#c5d7e0}
+#betaWorkshop .workshop-help{font-size:10px;color:#8baebf;margin:5px 0;line-height:1.5}
+#betaWorkshop .workshop-save summary{font-size:12px;cursor:pointer;color:#d6f5f6;font-weight:800;min-height:34px}
+#betaWorkshop .workshop-save[open]{border-color:#86c5c48a}
+#betaWorkshop .workshop-save .bigbutton{font-size:11px;min-height:40px;margin:7px 0}
+#betaWorkshop #betaVoice{min-height:42px;padding:8px;margin:10px 0 2px;font-size:11px}
+#betaWorkshop #betaVoiceStatus{display:block;font-size:10px;line-height:1.4;color:#a6bfcb}
+#betaWorkshop #betaStatus{min-height:12px;color:#b6f1da;font-size:11px}
+#betaWorkshop .workshop-card-note{font-size:9px;color:#9bc5ce;padding-top:5px}
+#betaWorkshop .modal-head .xbtn{width:42px;height:42px}
+@media(max-width:440px){
+  #welcome .panel{padding:11px 13px}
+  #welcome .hero-mark{height:149px}
+  #welcome .menu-hero-stage svg{height:151px}
+  #welcome .panel h1{font-size:clamp(40px,11vw,50px)}
+  #welcome .menu-tools .bigbutton{font-size:8.5px}
+  #betaWorkshop .panel{padding:13px 11px}
+  #betaWorkshop .workshop-avatar{grid-template-columns:132px minmax(0,1fr)}
+  #betaWorkshop #betaPreview{height:155px}
+  #betaWorkshop #betaPreview svg{height:155px}
+}
+@media(max-width:350px){
+  #betaWorkshop .workshop-avatar{grid-template-columns:105px 1fr}
+  #betaWorkshop #betaPreview,#betaWorkshop #betaPreview svg{height:130px}
+  #betaWorkshop .workshop-cta-row{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  #welcome .halo-a,#welcome .halo-b{animation:none}
+  #betaWorkshop .workshop-progress-track span{transition:none}
+}
