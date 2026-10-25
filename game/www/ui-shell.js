@@ -6,11 +6,11 @@ const RUNE_INFO=Object.freeze({
  U:{name:'RUPTURA',symbol:'↑',description:'Golpe ascendente que rompe o escudo do inimigo antes de atacar.',combo:'↑ →  ·  Ruptura'},
  D:{name:'GUARDA',symbol:'↓',description:'Proteção temporária. O tempo certo cria uma aparada perfeita e devolve energia.',combo:'↓ →  ·  Riposta'},
  L:{name:'ESQUIVA',symbol:'←',description:'Deslocamento evasivo. Se usado no instante do ataque, melhora a recompensa.',combo:'← ↑  ·  Passo Relâmpago'},
- O:{name:'ARCANO',symbol:'○',description:'Magia circular que ignora parte das defesas e utiliza 10 pontos de energia.',combo:'○ →  ·  Lâmina Arcana'},
- Z:{name:'RAIO',symbol:'ϟ',description:'Interrompe conjurações e atordoa brevemente. Utiliza 16 pontos de energia.',combo:'ϟ →  ·  Choque Cortante'}
+ O:{name:'ARCANO',symbol:'○',description:'Magia circular que ignora parte das defesas e utiliza 10 pontos de energia.',combo:'○ →  ·  Lâmina Arcana'}
+
 });
 const ENEMY_NAME=Object.freeze({raider:'SAQUEADOR',shaman:'FEITICEIRO',armored:'SENTINELA',boss:'GUARDIÃO'});
-const COACH_CODES=Object.freeze(['R','U','D','L','O','Z']);
+const COACH_CODES=Object.freeze(['R','U','D','L','O']);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function deriveBattleUX(s){
  const enemies=Array.isArray(s.enemies)?s.enemies:[];
@@ -21,7 +21,7 @@ function deriveBattleUX(s){
  else if(!enemies.length){label='ARENA LIVRE';action='PRÓXIMA ONDA';}
  else if(danger){
   countdown=Math.max(0,danger.cooldown).toFixed(1)+'s';charge=clamp((1-danger.cooldown/3.0)*100,0,100);urgent=danger.cooldown<1.15;
-  if(urgent){label=danger.type==='shaman'?'MAGIA HOSTIL':'ATAQUE IMINENTE';action=danger.type==='shaman'&&s.focus>=16?'DESENHE ϟ PARA INTERROMPER':s.guardReady?'DESENHE ↓ PARA APARAR':s.dodgeReady?'DESENHE ← PARA ESQUIVAR':'PREPARE O CONTRA-ATAQUE';}
+  if(urgent){label=danger.type==='shaman'?'MAGIA HOSTIL':'ATAQUE IMINENTE';action=danger.type==='shaman'&&s.focus>=16?'USE ↑ OU ○ PARA INTERROMPER':s.guardReady?'DESENHE ↓ PARA APARAR':s.dodgeReady?'DESENHE ← PARA ESQUIVAR':'PREPARE O CONTRA-ATAQUE';}
   else if(target&&target.shield>0){label='ALVO PROTEGIDO';action='DESENHE ↑ PARA ROMPER';}
   else if(target&&target.stun>0){label='ABERTURA CRÍTICA';action='COMBO AGORA!';}
   else if(s.focus<16){label='ENERGIA BAIXA';action='ATAQUE COM → PARA RECUPERAR';}
@@ -45,11 +45,11 @@ function createUI({onTarget,onRune}){
  function syncCoach(mode){
   if(mode!==lastMode){lastMode=mode;if(mode==='training'){coachIndex=0;coachComplete=false;}}
   const active=mode==='training';coach.classList.toggle('hidden',!active);if(!active)return;
-  $('coachStep').textContent=coachComplete?'✓ 6/6':`${coachIndex+1}/6`;
+  $('coachStep').textContent=coachComplete?'✓ 5/5':`${coachIndex+1}/6`;
   $('coachPrompt').textContent=coachComplete?'RUNAS DOMINADAS! Experimente criar combos.':`Desenhe ${RUNE_INFO[COACH_CODES[coachIndex]].symbol} · ${RUNE_INFO[COACH_CODES[coachIndex]].name.toLowerCase()}`;
-  $('coachFill').style.width=(coachComplete?100:coachIndex/6*100)+'%';
+  $('coachFill').style.width=(coachComplete?100:coachIndex/5*100)+'%';
  }
- function gesture(code){if(lastMode!=='training'||coachComplete)return; if(code===COACH_CODES[coachIndex]){coachIndex++;coachComplete=coachIndex===6;syncCoach('training');}}
+ function gesture(code){if(lastMode!=='training'||coachComplete)return; if(code===COACH_CODES[coachIndex]){coachIndex++;coachComplete=coachIndex===5;syncCoach('training');}}
  function inspectRune(code){const rune=RUNE_INFO[code];if(!rune)return;$('runeDetailIcon').textContent=rune.symbol;$('runeDetailName').textContent=rune.name;$('runeDetailDesc').textContent=rune.description;$('runeDetailExample').textContent=rune.combo;}
  function render(s){const ux=deriveBattleUX(s);$('arenaWave').textContent=String(s.wave||1).padStart(2,'0');$('threatName').textContent=ux.label;$('threatAction').textContent=ux.action;$('threatCountdown').textContent=ux.countdown;$('threatFill').style.width=ux.charge.toFixed(1)+'%';widget.classList.toggle('urgent',ux.urgent);syncTargets(s,ux);syncCoach(s.mode);$('streakText').textContent=`✦ ${s.perfectCount||0} PERFEITOS`;return ux;}
  return {render,gesture,inspectRune,resetCoach:()=>{coachIndex=0;coachComplete=false;lastMode='menu';}};

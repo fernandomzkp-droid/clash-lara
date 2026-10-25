@@ -13,4 +13,18 @@ check('guild win yields top rank rare and guild-wide points',()=>{let p=W.create
 check('daily claims once only after two hunts and two mines',()=>{let p=W.defaultProfile();p=W.resetDaily(p,'2026-10-13');for(let i=0;i<2;i++){p=W.hunt(p).profile;p=W.mine(p,i).profile}let a=W.dailyReward(p);assert.ok(a.ok);assert.equal(W.dailyReward(a.profile).ok,false)});
 check('talent tree gates later nodes with prerequisites',()=>{let p=RPG.DEFAULT_PROFILE();p.gold=8000;assert.ok(RPG.talentLock(p,'duelist',1));p=RPG.upgradeTalent(p,'duelist',0).profile;p=RPG.upgradeTalent(p,'duelist',0).profile;assert.equal(RPG.talentLock(p,'duelist',1),null);p=RPG.upgradeTalent(p,'duelist',4).profile;p=RPG.upgradeTalent(p,'duelist',4).profile;assert.equal(RPG.talentLock(p,'duelist',5),null)});
 check('offline wallet cash remains disabled, no real money play',()=>{let p=W.sanitize({...W.defaultProfile(),wallet:{cash:1000,gold:22,forge:10}});assert.equal(p.wallet.cash,0);assert.equal(p.wallet.gold,22)});
-console.log(`RuneWorld V6: ${tests}/13 passed`);
+check('21 distinct roaming mobs, two tiers of sets and functional group buffs',()=>{
+ assert.ok(Object.keys(W.MOB_TYPES).length>=21);assert.ok(W.SET_FAMILIES.length>=10);
+ let p=W.defaultProfile();for(const slot of ['helm','chest','pants']){
+  const item=W.makeItem(`armor_duelist_mortal_${slot}`);p.inventory.push(item);p.armory[slot]=item.uid;
+ }assert.equal(W.setBonuses(p)[0].pieces,3);assert.ok(W.stats(p).attack>.025);
+});
+check('high-tier sets cannot bypass ascension by cheap crafting',()=>assert.equal(W.craftItem(W.defaultProfile(),'armor_duelist_subcelestial_chest').ok,false));
+check('set ascension demands +9 and pays for next tier, existing equipped slot stays assigned',()=>{
+ let p=W.defaultProfile();const item=W.makeItem('armor_duelist_mortal_chest');p.inventory.push(item);p.armory.chest=item.uid;
+ assert.equal(W.ascendSet(p,item.uid).ok,false);
+ item.level=9;p.wallet.gold=9999;p.wallet.forge=9999;p.materials.ore=999;p.materials.crystal=999;
+ const out=W.ascendSet(p,item.uid);assert.ok(out.ok);assert.equal(out.to,'arch');assert.equal(out.item.level,0);
+ assert.equal(out.profile.armory.chest,out.item.uid);
+});
+console.log(`RuneWorld V6: ${tests}/${tests} passed`);

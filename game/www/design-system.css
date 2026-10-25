@@ -228,3 +228,37 @@ button{transition:transform .16s ease,background .18s ease,border-color .18s eas
   #welcome .halo-a,#welcome .halo-b{animation:none}
   #betaWorkshop .workshop-progress-track span{transition:none}
 }
+
+/* Beta 0.9.2 — NPC interaction layer that stays above the map/modal. */
+.world-npc-dialog{position:absolute;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+ padding:18px max(12px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom));
+ background:#050b18db;backdrop-filter:blur(9px);overflow:auto}
+.world-npc-card{width:min(100%,420px);max-height:min(80dvh,650px);overflow:auto;
+ padding:17px;border:1px solid #75d9ca;border-radius:18px;
+ background:radial-gradient(ellipse at 25% 10%,#294f55,#122539 60%,#091525);
+ color:#e9fbf8;box-shadow:0 17px 54px #000b,inset 0 1px #ecffec24}
+.world-npc-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:9px}
+.world-npc-head strong{color:#f8e2ac;font-size:16px}
+.world-npc-card p{font-size:13px;line-height:1.6;color:#bfd6dd;margin:8px 0 14px}
+.world-npc-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.world-npc-actions .world-btn{font-size:11px;min-height:47px;padding:9px;color:#edfcfb}
+.world-npc-actions .world-btn:first-child{background:linear-gradient(115deg,#367b77,#235760)}
+.world-npc-actions .world-btn:last-child{grid-column:1/-1}
+.world-map-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}
+.world-map-toolbar button{padding:10px 6px;font-size:10px;min-height:43px;border-radius:10px;border:1px solid #6fa59c;
+ background:#173641;color:#d1f8ee;font-weight:800}
+.world-map-toolbar button:active{transform:scale(.985)}
+.world-map-destination{width:100%;background:#152b3b;color:#d8f8ee;border:1px solid #6baca5;border-radius:8px;
+ min-height:44px;padding:9px;font-size:12px;margin-bottom:5px}
+.world-map-location{background:linear-gradient(115deg,#17363e,#1a2739);border:1px solid #477c84;
+ padding:8px 10px;color:#d6f8f1;min-height:38px;border-radius:10px;font-size:11px}
+.world-action-grid button{background:linear-gradient(125deg,#274a50,#183341);border:1px solid #79aa9a;
+ color:#d7fbf5;min-height:47px;opacity:1}
+.world-action-grid button:disabled{opacity:.57}
+.world-set-bonuses{padding:9px;margin:8px 0;background:#17283a;border:1px solid #70beb5;
+ border-radius:10px;font-size:11px;color:#bff8e9;line-height:1.5}
+.world-slot-card.has-gear .slot-icon{filter:drop-shadow(0 0 9px var(--item-glow))}
+.world-glyph-guide{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:5px 0}
+.world-glyph-guide span{text-align:center;padding:8px 2px;border:1px solid #526b87;border-radius:8px;color:#e3d7a8;font-size:11px}
+.world-map-zoom{background:#132d3b;color:#e0f9ff;border-color:#72c9cf}
+@media(max-width:380px){.world-npc-actions{grid-template-columns:1fr}.world-npc-actions .world-btn:last-child{grid-column:auto}}
