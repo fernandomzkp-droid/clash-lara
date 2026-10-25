@@ -1,7 +1,7 @@
 {
   "name": "clash-lara-multiplataforma",
   "private": true,
-  "version": "0.9.0-beta.1",
+  "version": "0.9.1-beta.1",
   "scripts": {
     "prepare:all": "node scripts/prepare.cjs",
     "test": "npm run prepare:all && node game/tests/test.js && node game/tests/test-rules.js && node game/tests/test-sequences.js && node game/tests/test-ui.js && node game/tests/test-rpg.js && node game/tests/test-world-v6.js && node game/tests-v7/test-realms.js && node game/tests-v7/test-transport.js && node game/tests-v7/test-persistence.js && node windows/test-policy.cjs && node game/tests-v7/test-phone.js && node game/tests/test-etapas.js && npm run test:tab",
